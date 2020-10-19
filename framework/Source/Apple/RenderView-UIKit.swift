@@ -60,13 +60,21 @@ public class RenderView:UIView, ImageConsumer {
         glGenRenderbuffers(1, &newDisplayRenderbuffer)
         displayRenderbuffer = newDisplayRenderbuffer
         glBindRenderbuffer(GLenum(GL_RENDERBUFFER), displayRenderbuffer!)
+		let group = DispatchGroup()
+		group.enter()
 
-        sharedImageProcessingContext.context.renderbufferStorage(Int(GL_RENDERBUFFER), from:self.layer as! CAEAGLLayer)
+		DispatchQueue.main.async {
+    		sharedImageProcessingContext.context.renderbufferStorage(Int(GL_RENDERBUFFER), from:self.layer as! CAEAGLLayer)
+    		group.leave()
+		}
+		group.wait()
 
-        var backingWidth:GLint = 0
-        var backingHeight:GLint = 0
-        glGetRenderbufferParameteriv(GLenum(GL_RENDERBUFFER), GLenum(GL_RENDERBUFFER_WIDTH), &backingWidth)
-        glGetRenderbufferParameteriv(GLenum(GL_RENDERBUFFER), GLenum(GL_RENDERBUFFER_HEIGHT), &backingHeight)
+
+		var backingWidth:GLint = 0
+		var backingHeight:GLint = 0
+		glGetRenderbufferParameteriv(GLenum(GL_RENDERBUFFER), GLenum(GL_RENDERBUFFER_WIDTH), &backingWidth)
+		glGetRenderbufferParameteriv(GLenum(GL_RENDERBUFFER), GLenum(GL_RENDERBUFFER_HEIGHT), &backingHeight)
+
         backingSize = GLSize(width:backingWidth, height:backingHeight)
         
         guard ((backingWidth > 0) && (backingHeight > 0)) else {
